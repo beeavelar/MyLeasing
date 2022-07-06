@@ -1,7 +1,7 @@
-﻿using MyLeasing.Web.Data.Entities;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using MyLeasing.Web.Data.Entities;
 
 namespace MyLeasing.Web.Data
 {
@@ -9,12 +9,9 @@ namespace MyLeasing.Web.Data
     {
         private readonly DataContext _context;
 
-        private Random _random; //Criar orwers aleatorios
-
         public SeedDb(DataContext context) // Contrutor busca o o dataContext e o random
         {
             _context = context;
-            _random = new Random(); //Instaciar
         }
 
         //Método publico asincrono que retorna uma Task 
@@ -42,7 +39,6 @@ namespace MyLeasing.Web.Data
         {
             _context.Owners.Add(new Owner
             {
-                Document = _random.Next(10000),
                 FirstName = name,
             });
         }

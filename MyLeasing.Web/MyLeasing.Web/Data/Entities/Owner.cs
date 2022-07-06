@@ -6,9 +6,7 @@ namespace MyLeasing.Web.Data.Entities
     {
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(8, ErrorMessage = "The field {0} can contain {1} numbers.")]
-        public int Document { get; set; }
+        public int? Document { get; set; }
 
         [Required]
         [MaxLength(50, ErrorMessage = "The field {0} can contain {1} characteres length.")]
@@ -18,11 +16,9 @@ namespace MyLeasing.Web.Data.Entities
 
         public int? FixedPhone { get; set; }
 
-        [Required]
-        [MaxLength(9, ErrorMessage = "The field {0} can contain {1} numbers.")]
-        public int CellPhone { get; set; }
+        public int? CellPhone { get; set; }
 
-        public string? Addrress { get; set; }
+        public string Addrress { get; set; }
 
     }
 }

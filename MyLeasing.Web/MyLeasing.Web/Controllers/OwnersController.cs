@@ -1,37 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
     public class OwnersController : Controller
     {
-        private readonly DataContext _context;
+        private readonly IRepository _repository;
 
-        public OwnersController(DataContext context)
+        //private readonly DataContext _context;
+
+        //public OwnersController(DataContext context)
+        //{
+        //    _context = context;
+        //}
+
+        public OwnersController(IRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         // GET: Owners
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Owners.ToListAsync()); //Tarefa -> Vai na propriedade Owners da DataContext (_context é a variável global criada para o DataContext) e envia a lista de Owners para a view Index
+            //return View(await _context.Owners.ToListAsync()); 
+            //Tarefa -> Vai na propriedade Owners da DataContext (_context é a variável global criada para o DataContext)
+            //e envia a lista de Owners para a view Index
+            return View(_repository.GetOwners()); //Buscar o repositório o método para buscar todos os produtos
         }
 
         // GET: Owners/Details/5
-        public async Task<IActionResult> Details(int? id)
+        // public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var owner = await _context.Owners
-                .FirstOrDefaultAsync(m => m.Id == id);
+            //var owner = await _context.Owners
+            //    .FirstOrDefaultAsync(m => m.Id == id);
+            var owner = _repository.GetOwner(id.Value); //.Value para aceitar tbm valores nulos (int? id --> id é opcional,
+                                                        //aceita valor nulo) e não dar erro
             if (owner == null)
             {
                 return NotFound();
@@ -55,22 +67,27 @@ namespace MyLeasing.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(owner);
-                await _context.SaveChangesAsync();
+                //_context.Add(owner);
+                //await _context.SaveChangesAsync();
+                _repository.AddOwner(owner); //Adiciona o owner
+                await _repository.SaveAllAsync();//Mandar gravar --> await pq o método SaveAllAsync é async
+
                 return RedirectToAction(nameof(Index));
             }
             return View(owner);
         }
 
         // GET: Owners/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        //public async Task<IActionResult> Edit(int? id)
+        public IActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var owner = await _context.Owners.FindAsync(id);
+            //var owner = await _context.Owners.FindAsync(id);
+            var owner = _repository.GetOwner(id.Value);
             if (owner == null)
             {
                 return NotFound();
@@ -94,12 +111,15 @@ namespace MyLeasing.Web.Controllers
             {
                 try
                 {
-                    _context.Update(owner);
-                    await _context.SaveChangesAsync();
+                    //_context.Update(owner);
+                    //await _context.SaveChangesAsync();
+                    _repository.UpdateOwner(owner); //Faz o update dos dados do owner
+                    await _repository.SaveAllAsync(); //Mandar gravar --> await pq o método SaveAllAsync é async
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!OwnerExists(owner.Id))
+                    //if (!OwnerExists(owner.Id))
+                    if (!_repository.OwnerExists(owner.Id)) //verifica se o owner existe, mas com o método do repositorio
                     {
                         return NotFound();
                     }
@@ -114,15 +134,17 @@ namespace MyLeasing.Web.Controllers
         }
 
         // GET: Owners/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        //public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return NotFound();
             }
 
-            var owner = await _context.Owners
-                .FirstOrDefaultAsync(m => m.Id == id);
+            //var owner = await _context.Owners
+            //    .FirstOrDefaultAsync(m => m.Id == id);
+            var owner = _repository.GetOwner(id.Value);
             if (owner == null)
             {
                 return NotFound();
@@ -136,15 +158,19 @@ namespace MyLeasing.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var owner = await _context.Owners.FindAsync(id);
-            _context.Owners.Remove(owner);
-            await _context.SaveChangesAsync();
+            //var owner = await _context.Owners.FindAsync(id);
+            //_context.Owners.Remove(owner);
+            //await _context.SaveChangesAsync();
+
+            var owner = _repository.GetOwner(id); //não precisa do .Value pq o parametro id (int id) que é passado não e opcional nesse caso
+            _repository.RemoveOwner(owner); //Remove o owner
+            await _repository.SaveAllAsync(); //Mandar gravar --> await pq o método SaveAllAsync é async
             return RedirectToAction(nameof(Index));
         }
 
-        private bool OwnerExists(int id)
-        {
-            return _context.Owners.Any(e => e.Id == id);
-        }
+        //private bool OwnerExists(int id)
+        //{
+        //    return _context.Owners.Any(e => e.Id == id);
+        //}
     }
 }
