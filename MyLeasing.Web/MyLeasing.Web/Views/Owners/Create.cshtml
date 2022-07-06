@@ -1,12 +1,12 @@
-﻿@model MyLeasing.Web.Data.Entities.Owner
+﻿@model MyLeasing.Web.Data.Entities.Owner //A view Create (do controle Owners) não manda nenhum parametro para a view Create pq lá no controller Owner na action Create, no return não tem tenhum parametro sendo passado --> return View(); A view Create não manda nada para ca, mas envia os dados inseridos no form daqui para o controller Owner --> Por isso temos que indicar o @model, ou seja, o modelo que a view vai utilizar para enviar os dados
+
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Create new owner";
 }
 
-<h1>Create</h1>
+<h1>New Owner</h1>
 
-<h4>Owner</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
@@ -44,13 +44,10 @@
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />
+                 <a asp-action="Index" class="btn btn-success">Back to List</a>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

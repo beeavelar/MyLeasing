@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -22,7 +19,7 @@ namespace MyLeasing.Web.Controllers
         // GET: Owners
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Owners.ToListAsync());
+            return View(await _context.Owners.ToListAsync()); //Tarefa -> Vai na propriedade Owners da DataContext (_context é a variável global criada para o DataContext) e envia a lista de Owners para a view Index
         }
 
         // GET: Owners/Details/5
