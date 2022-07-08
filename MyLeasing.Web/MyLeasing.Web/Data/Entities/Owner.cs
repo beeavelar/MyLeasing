@@ -2,7 +2,7 @@
 
 namespace MyLeasing.Web.Data.Entities
 {
-    public class Owner
+    public class Owner : IEntity //Implementar o interface IEntity
     {
         public int Id { get; set; }
 
