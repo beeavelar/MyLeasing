@@ -1,14 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
+using MyLeasing.Web.Helpers;
 
 namespace MyLeasing.Web.Controllers
 {
     public class OwnersController : Controller
     {
         private readonly IOwnersRepository _ownerRepository;
+        private readonly IUserHelper _userHelper;
 
         //private readonly DataContext _context;
 
@@ -17,9 +20,10 @@ namespace MyLeasing.Web.Controllers
         //    _context = context;
         //}
 
-        public OwnersController(IOwnersRepository ownerRepository)
+        public OwnersController(IOwnersRepository ownerRepository, IUserHelper userHelper)
         {
             _ownerRepository = ownerRepository;
+            _userHelper = userHelper;
         }
 
         // GET: Owners
@@ -28,7 +32,7 @@ namespace MyLeasing.Web.Controllers
             //return View(await _context.Owners.ToListAsync()); 
             //Tarefa -> Vai na propriedade Owners da DataContext (_context é a variável global criada para o DataContext)
             //e envia a lista de Owners para a view Index
-            return View(_ownerRepository.GetAll()); //Buscar o repositório o método para buscar todos os produtos
+            return View(_ownerRepository.GetAll().OrderBy(o => o.FirstName)); //Buscar o repositório o método para buscar todos os produtos
         }
 
         // GET: Owners/Details/5
@@ -67,6 +71,8 @@ namespace MyLeasing.Web.Controllers
         {
             if (ModelState.IsValid)
             {
+                // To do: Mofidicar para o user que estiver logado
+                owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                 //_context.Add(owner);
                 //await _context.SaveChangesAsync();
                 await _ownerRepository.CreateAsync(owner); //Adiciona o owner
@@ -109,6 +115,7 @@ namespace MyLeasing.Web.Controllers
             {
                 try
                 {
+                    owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                     //_context.Update(owner);
                     //await _context.SaveChangesAsync();
                     await _ownerRepository.UpdateAsync(owner); //Faz o update dos dados do owner
