@@ -16,6 +16,8 @@ namespace MyLeasing.Web.Controllers
     {
         private readonly IOwnersRepository _ownerRepository;
         private readonly IUserHelper _userHelper;
+        private readonly IImageHelper _imageHelper;
+        private readonly IConveterHelper _converterHelper;
 
         //private readonly DataContext _context;
 
@@ -24,10 +26,14 @@ namespace MyLeasing.Web.Controllers
         //    _context = context;
         //}
 
-        public OwnersController(IOwnersRepository ownerRepository, IUserHelper userHelper)
+        public OwnersController(IOwnersRepository ownerRepository, 
+            IUserHelper userHelper, IImageHelper imageHelper,
+            IConveterHelper converterHelper)
         {
             _ownerRepository = ownerRepository;
             _userHelper = userHelper;
+            _imageHelper = imageHelper;
+            _converterHelper = converterHelper;
         }
 
         // GET: Owners
@@ -80,34 +86,15 @@ namespace MyLeasing.Web.Controllers
 
                 if(model.ImageFile != null && model.ImageFile.Length > 0) //Se uma imagem for carregada --> lenght > 0 e model.ImageFile não é nulo
                 {
-                    var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
-                    var file = $"{guid}.jpg";
 
-                    //Caminho do ficheiro da imagem
-                    path = Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot\\images\\owners",
-                        file);
-
-                    //gravar a imagem
-                    using(var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
-                                                                              //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
-                    {
-                        //Guardar 
-                        await model.ImageFile.CopyToAsync(stream);
-                    }
-
-                    //Atualizar o caminho para guardar na bd
-                    path = $"~/images/owners/{file}";
+                    path = await _imageHelper.UploadImageAsync(model.ImageFile, "owners"); //Mandar guardar na pasta "owners"
                 }
 
-                //Converter um OwnerViewModel em um Owner
-                var owner = this.ToOwner(model, path);
+                var owner = _converterHelper.ToOwner(model, path, true); //Como é um create o isNew é true
 
                 // To do: Mofidicar para o user que estiver logado
                 owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
-                //_context.Add(owner);
-                //await _context.SaveChangesAsync();
+
                 await _ownerRepository.CreateAsync(owner); //Adiciona o owner
                 return RedirectToAction(nameof(Index));
             }
@@ -116,22 +103,22 @@ namespace MyLeasing.Web.Controllers
 
         //Método retorna um Owner
 
-        private Owner ToOwner(OwnerViewModel model, string path)
-        {
-            //Fazer a comversão do OwnerViewModel em um Owner
-            return new Owner
-            {
-                Id = model.Id,
-                Document = model.Document,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                FixedPhone = model.FixedPhone,
-                CellPhone = model.CellPhone,
-                Addrress = model.Addrress,
-                ImageUrl = path,
-                User = model.User
-            };
-        }
+        //private Owner ToOwner(OwnerViewModel model, string path)
+        //{
+        //    //Fazer a comversão do OwnerViewModel em um Owner
+        //    return new Owner
+        //    {
+        //        Id = model.Id,
+        //        Document = model.Document,
+        //        FirstName = model.FirstName,
+        //        LastName = model.LastName,
+        //        FixedPhone = model.FixedPhone,
+        //        CellPhone = model.CellPhone,
+        //        Addrress = model.Addrress,
+        //        ImageUrl = path,
+        //        User = model.User
+        //    };
+        //}
 
 
         // GET: Owners/Edit/5
@@ -152,25 +139,27 @@ namespace MyLeasing.Web.Controllers
             }
 
             //No Edit é ao contrário, converte o Owner em OwnerViewModel
-            var model = this.ToOwnerViewModel(owner);
+            //var model = this.ToOwnerViewModel(owner);
+            var model = _converterHelper.ToOwnerViewModel(owner);
+
             return View(model);
         }
 
-        private OwnerViewModel ToOwnerViewModel(Owner owner)
-        {
-            return new OwnerViewModel
-            {
-                Id = owner.Id,
-                Document = owner.Document,
-                FirstName = owner.FirstName,
-                LastName = owner.LastName,
-                FixedPhone = owner.FixedPhone,
-                CellPhone = owner.CellPhone,
-                Addrress = owner.Addrress,
-                ImageUrl = owner.ImageUrl,
-                User = owner.User
-            };
-        }
+        //private OwnerViewModel ToOwnerViewModel(Owner owner)
+        //{
+        //    return new OwnerViewModel
+        //    {
+        //        Id = owner.Id,
+        //        Document = owner.Document,
+        //        FirstName = owner.FirstName,
+        //        LastName = owner.LastName,
+        //        FixedPhone = owner.FixedPhone,
+        //        CellPhone = owner.CellPhone,
+        //        Addrress = owner.Addrress,
+        //        ImageUrl = owner.ImageUrl,
+        //        User = owner.User
+        //    };
+        //}
 
         // POST: Owners/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -193,29 +182,33 @@ namespace MyLeasing.Web.Controllers
 
                     if(model.ImageFile != null && model.ImageFile.Length > 0)
                     {
-                        var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
-                        var file = $"{guid}.jpg";
+                        //var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
+                        //var file = $"{guid}.jpg";
 
-                        //Caminho do ficheiro
-                        path = Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot\\images\\owners",
-                            file);
+                        ////Caminho do ficheiro
+                        //path = Path.Combine(
+                        //    Directory.GetCurrentDirectory(),
+                        //    "wwwroot\\images\\owners",
+                        //    file);
 
-                        //gravar a imagem
-                        using (var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
-                                                                                   //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
-                        {
-                            //Guardar 
-                            await model.ImageFile.CopyToAsync(stream);
-                        }
+                        ////gravar a imagem
+                        //using (var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
+                        //                                                           //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
+                        //{
+                        //    //Guardar 
+                        //    await model.ImageFile.CopyToAsync(stream);
+                        //}
 
-                        //Atualizar o caminho para guardar na bd
-                        path = $"~/images/owners/{file}";
+                        ////Atualizar o caminho para guardar na bd
+                        //path = $"~/images/owners/{file}";
+
+                        path = await _imageHelper.UploadImageAsync(model.ImageFile, "owners"); //Mandar guardar na pasta "owners"
                     }
 
                     //Converter um OwnerViewModel em um Owner
-                    var owner = this.ToOwner(model, path);
+                    //var owner = this.ToOwner(model, path);
+
+                    var owner = _converterHelper.ToOwner(model, path, false);
 
                     owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                     //_context.Update(owner);
