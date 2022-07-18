@@ -13,7 +13,7 @@ namespace MyLeasing.Web.Data
         private readonly IUserHelper _userHelper;
         //private readonly UserManager<User> _userManager;
 
-        public SeedDb(DataContext context, IUserHelper userHelper) // Contrutor busca o o dataContext e o random
+        public SeedDb(DataContext context, IUserHelper userHelper) // Contrutor busca o dataContext e o userHelper
         {
             _context = context;
             _userHelper = userHelper;
@@ -43,7 +43,7 @@ namespace MyLeasing.Web.Data
                     throw new InvalidOperationException("Could not create the user in seeder.");
             }
             
-            if(!_context.Owners.Any()) //Se nao existir Owners na Bd --> criar os owners
+            if(!_context.Owners.Any()) //Se nao existir Owners na Bd --> criar 
             {
                 AddOwner("Miguel", user); //Como só vai ter um utilizador criado, ele é quem cria todos os Owners por enquanto
                 AddOwner("Pedro", user);
@@ -57,12 +57,33 @@ namespace MyLeasing.Web.Data
                 AddOwner("Amélie", user);
                 await _context.SaveChangesAsync();
             }
+
+            if (!_context.Lessee.Any()) //Se nao existir Owners na Bd --> criar 
+            {
+                AddLessee("Miguel", "Guerreiro", user); //Como só vai ter um utilizador criado, ele é quem cria todos os Owners por enquanto,
+                AddLessee("Pedro", "Rodrigues", user);
+                AddLessee("Karen", "Borges", user);
+                AddLessee("Maria", "Lopes", user);
+                AddLessee("Thiago", "Abravael",  user);
+                await _context.SaveChangesAsync();
+            }
+
         }
         private void AddOwner(string name, User user)
         {
             _context.Owners.Add(new Owner
             {
                 FirstName = name,
+                User = user
+            });
+        }
+
+        private void AddLessee(string firstName, string lastName, User user)
+        {
+            _context.Lessee.Add(new Lessee
+            {
+                FirstName = firstName,
+                LastName = lastName,
                 User = user
             });
         }

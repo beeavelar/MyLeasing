@@ -13,8 +13,6 @@ namespace MyLeasing.Web.Data.Entities
         [Display(Name = "First name")]
         public string FirstName { get; set; }
 
-        [Required]
-        [MaxLength(50, ErrorMessage = "The field {0} can contain {1} characteres length.")]
         [Display(Name = "Last name")]
         public string LastName { get; set; }
 
@@ -36,17 +34,17 @@ namespace MyLeasing.Web.Data.Entities
 
         public string FullNameWithDocument => $"{FirstName} {LastName} - {Document}";
 
-        //public string PhotoFullPath
-        //{
-        //    get
-        //    {
-        //        if (string.IsNullOrEmpty(Photo)) //Se tiver vazio
-        //        {
-        //            return null; //É nulo
-        //        }
+        public string PhotoFullPath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(Photo)) //Se tiver vazio
+                {
+                    return null; //É nulo
+                }
 
-        //        return $"https://localhost:44355{Photo.Substring(1)}";
-        //    }
-        //}
+                return $"https://localhost:44355{Photo.Substring(1)}";
+            }
+        }
     }
 }
