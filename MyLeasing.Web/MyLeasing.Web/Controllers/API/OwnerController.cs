@@ -18,7 +18,7 @@ namespace MyLeasing.Web.Controllers.API
         [HttpGet]
         public IActionResult GetOwners()
         { 
-            return Ok(_ownerRepository.GetAll()); //Busca todos os owners no repositorio
+            return Ok(_ownerRepository.GetAllWithUsers()); //Busca todos os owners no repositorio
         }
 
 

@@ -1,8 +1,8 @@
-﻿@model MyLeasing.Web.Data.Entities.Owner //A view Create (do controle Owners) não manda nenhum parametro para a view Create pq lá no controller Owner na action Create, no return não tem tenhum parametro sendo passado --> return View(); A view Create não manda nada para ca, mas envia os dados inseridos no form daqui para o controller Owner --> Por isso temos que indicar o @model, ou seja, o modelo que a view vai utilizar para enviar os dados
+﻿@model MyLeasing.Web.Models.OwnerViewModel //Agora quem passa os parâmentro é o OwnerViewModel e não mais o Owner --> @model MyLeasing.Web.Data.Entities.Owner --> A view Create (do controle Owners) não manda nenhum parametro para a view Create pq lá no controller Owner na action Create, no return não tem tenhum parametro sendo passado --> return View(); A view Create não manda nada para ca, mas envia os dados inseridos no form daqui para o controller Owner --> Por isso temos que indicar o @model, ou seja, o modelo que a view vai utilizar para enviar os dados
 
 
 @{
-    ViewData["Title"] = "Create new owner";
+    ViewData["Title"] = "Create";
 }
 
 <h1>New Owner</h1>
@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="Create">
+        <form asp-action="Create" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="Document" class="control-label"></label>
@@ -41,6 +41,11 @@
                 <label asp-for="Addrress" class="control-label"></label>
                 <input asp-for="Addrress" class="form-control" />
                 <span asp-validation-for="Addrress" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="ImageFile" class="control-label"></label>
+                <input asp-for="ImageFile" class="form-control" type = "file"/>
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

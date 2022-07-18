@@ -1,10 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Data.Entities;
 using MyLeasing.Web.Helpers;
+using MyLeasing.Web.Models;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -67,10 +71,39 @@ namespace MyLeasing.Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Document,FirstName,LastName,FixedPhone,CellPhone,Addrress")] Owner owner)
+        public async Task<IActionResult> Create(OwnerViewModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) //validar se o modelo é valido
             {
+                //Depois de validar se o modelo é valido --> Carregar a imagem antes de colocar o owner no repositorio
+                var path = string.Empty;
+
+                if(model.ImageFile != null && model.ImageFile.Length > 0) //Se uma imagem for carregada --> lenght > 0 e model.ImageFile não é nulo
+                {
+                    var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
+                    var file = $"{guid}.jpg";
+
+                    //Caminho do ficheiro da imagem
+                    path = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot\\images\\owners",
+                        file);
+
+                    //gravar a imagem
+                    using(var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
+                                                                              //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
+                    {
+                        //Guardar 
+                        await model.ImageFile.CopyToAsync(stream);
+                    }
+
+                    //Atualizar o caminho para guardar na bd
+                    path = $"~/images/owners/{file}";
+                }
+
+                //Converter um OwnerViewModel em um Owner
+                var owner = this.ToOwner(model, path);
+
                 // To do: Mofidicar para o user que estiver logado
                 owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                 //_context.Add(owner);
@@ -78,13 +111,34 @@ namespace MyLeasing.Web.Controllers
                 await _ownerRepository.CreateAsync(owner); //Adiciona o owner
                 return RedirectToAction(nameof(Index));
             }
-            return View(owner);
+            return View(model);
         }
+
+        //Método retorna um Owner
+
+        private Owner ToOwner(OwnerViewModel model, string path)
+        {
+            //Fazer a comversão do OwnerViewModel em um Owner
+            return new Owner
+            {
+                Id = model.Id,
+                Document = model.Document,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                FixedPhone = model.FixedPhone,
+                CellPhone = model.CellPhone,
+                Addrress = model.Addrress,
+                ImageUrl = path,
+                User = model.User
+            };
+        }
+
 
         // GET: Owners/Edit/5
         //public async Task<IActionResult> Edit(int? id)
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id) //Recebe o id do owner a ser editado
         {
+            //Verifica se o owner existe
             if (id == null)
             {
                 return NotFound();
@@ -96,7 +150,26 @@ namespace MyLeasing.Web.Controllers
             {
                 return NotFound();
             }
-            return View(owner);
+
+            //No Edit é ao contrário, converte o Owner em OwnerViewModel
+            var model = this.ToOwnerViewModel(owner);
+            return View(model);
+        }
+
+        private OwnerViewModel ToOwnerViewModel(Owner owner)
+        {
+            return new OwnerViewModel
+            {
+                Id = owner.Id,
+                Document = owner.Document,
+                FirstName = owner.FirstName,
+                LastName = owner.LastName,
+                FixedPhone = owner.FixedPhone,
+                CellPhone = owner.CellPhone,
+                Addrress = owner.Addrress,
+                ImageUrl = owner.ImageUrl,
+                User = owner.User
+            };
         }
 
         // POST: Owners/Edit/5
@@ -104,26 +177,56 @@ namespace MyLeasing.Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Document,FirstName,LastName,FixedPhone,CellPhone,Addrress")] Owner owner)
+        public async Task<IActionResult> Edit(OwnerViewModel model)
         {
-            if (id != owner.Id)
-            {
-                return NotFound();
-            }
+            //Não é preciso ver se o Id existe
+            //if (id != owner.Id)
+            //{
+            //    return NotFound();
+            //}
 
             if (ModelState.IsValid)
             {
                 try
                 {
+                    var path = model.ImageUrl;
+
+                    if(model.ImageFile != null && model.ImageFile.Length > 0)
+                    {
+                        var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
+                        var file = $"{guid}.jpg";
+
+                        //Caminho do ficheiro
+                        path = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot\\images\\owners",
+                            file);
+
+                        //gravar a imagem
+                        using (var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
+                                                                                   //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
+                        {
+                            //Guardar 
+                            await model.ImageFile.CopyToAsync(stream);
+                        }
+
+                        //Atualizar o caminho para guardar na bd
+                        path = $"~/images/owners/{file}";
+                    }
+
+                    //Converter um OwnerViewModel em um Owner
+                    var owner = this.ToOwner(model, path);
+
                     owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                     //_context.Update(owner);
                     //await _context.SaveChangesAsync();
                     await _ownerRepository.UpdateAsync(owner); //Faz o update dos dados do owner
                 }
+
                 catch (DbUpdateConcurrencyException)
                 {
                     //if (!OwnerExists(owner.Id))
-                    if (! await _ownerRepository.ExistAsync(owner.Id)) //verifica se o owner existe, mas com o método do repositorio
+                    if (! await _ownerRepository.ExistAsync(model.Id)) //verifica se o owner existe, mas com o método do repositorio
                     {
                         return NotFound();
                     }
@@ -134,7 +237,7 @@ namespace MyLeasing.Web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(owner);
+            return View(model);
         }
 
         // GET: Owners/Delete/5
