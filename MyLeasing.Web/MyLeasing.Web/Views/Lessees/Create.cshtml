@@ -1,4 +1,4 @@
-﻿@model MyLeasing.Web.Data.Entities.Lessee
+﻿@model MyLeasing.Web.Models.LesseeViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -42,9 +42,9 @@
                 <span asp-validation-for="Addrress" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="Photo" class="control-label"></label>
-                <input asp-for="Photo" class="form-control" />
-                <span asp-validation-for="Photo" class="text-danger"></span>
+                <label asp-for="ImageFile" class="control-label"></label>
+                <input asp-for="ImageFile" class="form-control" type="file"/>
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <input type="submit" value="Create" class="btn btn-primary" />

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace MyLeasing.Web.Data.Entities
 {
@@ -26,22 +27,14 @@ namespace MyLeasing.Web.Data.Entities
         public string Addrress { get; set; }
 
         [Display(Name = "Photo")]
-        public string ImageUrl { get; set; }
+        //public string ImageUrl { get; set; }
+        public Guid ImageId { get; set; }
 
         public User User { get; set; }
 
-        public string ImageFullPath
-        {
-            get
-            {
-                if(string.IsNullOrEmpty(ImageUrl)) //Se tiver vazio
-                {
-                    return null; //É nulo
-                }
-
-                return $"https://localhost:44355{ImageUrl.Substring(1)}";
-            }
-        }
+        public string ImageFullPath => ImageId == Guid.Empty //Se o ImageId estiver vazio, 
+            ? $"https://myleasing.azurewebsites.net/images/noimage.jpg" //vai buscar a imagem "noimage"
+            : $"https://myleasingcet69.blob.core.windows.net/owners/{ImageId}"; //caso exista imagem, buscar o Id que esta dentro do container que foi criado
 
     }
 }

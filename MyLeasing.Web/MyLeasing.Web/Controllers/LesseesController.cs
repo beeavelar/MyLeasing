@@ -1,28 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
-using MyLeasing.Web.Data.Entities;
+using MyLeasing.Web.Helpers;
+using MyLeasing.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
     public class LesseesController : Controller
     {
-        private readonly DataContext _context;
+        private readonly ILesseesRepository _lesseeRepository;
+        private readonly IUserHelper _userHelper;
+        private readonly IBlobHelper _blobHelper;
+        private readonly IConveterHelper _converterHelper;
 
-        public LesseesController(DataContext context)
+        public LesseesController(ILesseesRepository lesseeRepository,
+            IUserHelper userHelper, IBlobHelper blobHelper,
+            IConveterHelper converterHelper)
         {
-            _context = context;
+            _lesseeRepository = lesseeRepository;
+            _userHelper = userHelper;
+            _blobHelper = blobHelper;
+            _converterHelper = converterHelper;
         }
 
         // GET: Lessees
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Lessee.ToListAsync());
+            return View(_lesseeRepository.GetAll().OrderBy(l => l.FirstName));
         }
 
         // GET: Lessees/Details/5
@@ -33,8 +40,8 @@ namespace MyLeasing.Web.Controllers
                 return NotFound();
             }
 
-            var lessee = await _context.Lessee
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var lessee = await _lesseeRepository.GetByIdAsync(id.Value);
+
             if (lessee == null)
             {
                 return NotFound();
@@ -54,15 +61,26 @@ namespace MyLeasing.Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Document,FirstName,LastName,FixedPhone,CellPhone,Addrress,Photo")] Lessee lessee)
+        public async Task<IActionResult> Create(LesseeViewModel model)
         {
-            if (ModelState.IsValid)
+            if (ModelState.IsValid) //validar se o modelo é valido
             {
-                _context.Add(lessee);
-                await _context.SaveChangesAsync();
+                //Depois de validar se o modelo é valido --> Carregar a imagem antes de colocar o owner no repositorio
+                Guid imageId = Guid.Empty;
+
+                if (model.ImageFile != null && model.ImageFile.Length > 0) //Se uma imagem for carregada --> lenght > 0 e model.ImageFile não é nulo
+                {
+                    imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "lessees"); //Mandar guardar na pasta "lessees"
+                }
+
+                var lessee = _converterHelper.ToLessee(model, imageId, true); //Como é um create o isNew é true
+
+                lessee.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+
+                await _lesseeRepository.CreateAsync(lessee); //Adiciona o lessee
                 return RedirectToAction(nameof(Index));
             }
-            return View(lessee);
+            return View(model);
         }
 
         // GET: Lessees/Edit/5
@@ -73,12 +91,15 @@ namespace MyLeasing.Web.Controllers
                 return NotFound();
             }
 
-            var lessee = await _context.Lessee.FindAsync(id);
+            var lessee = await _lesseeRepository.GetByIdAsync(id.Value);
+
             if (lessee == null)
             {
                 return NotFound();
             }
-            return View(lessee);
+
+            var model = _converterHelper.ToLesseeViewModel(lessee);
+            return View(model);
         }
 
         // POST: Lessees/Edit/5
@@ -86,23 +107,30 @@ namespace MyLeasing.Web.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Document,FirstName,LastName,FixedPhone,CellPhone,Addrress,Photo")] Lessee lessee)
+        public async Task<IActionResult> Edit(LesseeViewModel model)
         {
-            if (id != lessee.Id)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(lessee);
-                    await _context.SaveChangesAsync();
+                    Guid imageId = model.PhotoId;
+
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
+                    {
+                        imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "lessees");
+
+                    }
+
+                    var lessee = _converterHelper.ToLessee(model, imageId, false);
+
+                    lessee.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                    await _lesseeRepository.UpdateAsync(lessee);
                 }
+
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!LesseeExists(lessee.Id))
+                    //if (!OwnerExists(owner.Id))
+                    if (!await _lesseeRepository.ExistAsync(model.Id))
                     {
                         return NotFound();
                     }
@@ -113,7 +141,7 @@ namespace MyLeasing.Web.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(lessee);
+            return View(model);
         }
 
         // GET: Lessees/Delete/5
@@ -124,8 +152,8 @@ namespace MyLeasing.Web.Controllers
                 return NotFound();
             }
 
-            var lessee = await _context.Lessee
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var lessee = await _lesseeRepository.GetByIdAsync(id.Value);
+
             if (lessee == null)
             {
                 return NotFound();
@@ -139,15 +167,9 @@ namespace MyLeasing.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var lessee = await _context.Lessee.FindAsync(id);
-            _context.Lessee.Remove(lessee);
-            await _context.SaveChangesAsync();
+            var lessee = await _lesseeRepository.GetByIdAsync(id);
+            await _lesseeRepository.DeleteAsync(lessee);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool LesseeExists(int id)
-        {
-            return _context.Lessee.Any(e => e.Id == id);
         }
     }
 }

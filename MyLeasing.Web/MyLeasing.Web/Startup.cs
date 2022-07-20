@@ -45,11 +45,15 @@ namespace MyLeasing.Web
 
             services.AddScoped<IUserHelper, UserHelper>();
 
-            services.AddScoped<IImageHelper, ImageHelper>();
+            //services.AddScoped<IImageHelper, ImageHelper>();
+
+            services.AddScoped<IBlobHelper, BlobHelper>();
 
             services.AddScoped<IConveterHelper, ConverterHelper>();
 
             services.AddScoped<IOwnersRepository, OwnerRepository>();
+
+            services.AddScoped<ILesseesRepository, LesseeRepository>();
 
             services.AddControllersWithViews();
         }

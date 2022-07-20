@@ -1,14 +1,11 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
-using MyLeasing.Web.Data.Entities;
 using MyLeasing.Web.Helpers;
 using MyLeasing.Web.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -16,7 +13,8 @@ namespace MyLeasing.Web.Controllers
     {
         private readonly IOwnersRepository _ownerRepository;
         private readonly IUserHelper _userHelper;
-        private readonly IImageHelper _imageHelper;
+        //private readonly IImageHelper _imageHelper;
+        private readonly IBlobHelper _blobHelper;
         private readonly IConveterHelper _converterHelper;
 
         //private readonly DataContext _context;
@@ -26,13 +24,14 @@ namespace MyLeasing.Web.Controllers
         //    _context = context;
         //}
 
-        public OwnersController(IOwnersRepository ownerRepository, 
-            IUserHelper userHelper, IImageHelper imageHelper,
+        public OwnersController(IOwnersRepository ownerRepository,
+            IUserHelper userHelper, IBlobHelper blobHelper,
             IConveterHelper converterHelper)
         {
             _ownerRepository = ownerRepository;
             _userHelper = userHelper;
-            _imageHelper = imageHelper;
+            //_imageHelper = imageHelper;
+            _blobHelper = blobHelper;
             _converterHelper = converterHelper;
         }
 
@@ -57,7 +56,7 @@ namespace MyLeasing.Web.Controllers
             //var owner = await _context.Owners
             //    .FirstOrDefaultAsync(m => m.Id == id);
             var owner = await _ownerRepository.GetByIdAsync(id.Value); //.Value para aceitar tbm valores nulos (int? id --> id é opcional,
-                                                        //aceita valor nulo) e não dar erro
+                                                                       //aceita valor nulo) e não dar erro
             if (owner == null)
             {
                 return NotFound();
@@ -82,15 +81,18 @@ namespace MyLeasing.Web.Controllers
             if (ModelState.IsValid) //validar se o modelo é valido
             {
                 //Depois de validar se o modelo é valido --> Carregar a imagem antes de colocar o owner no repositorio
-                var path = string.Empty;
+                //var path = string.Empty;
 
-                if(model.ImageFile != null && model.ImageFile.Length > 0) //Se uma imagem for carregada --> lenght > 0 e model.ImageFile não é nulo
+                Guid imageId = Guid.Empty;
+
+                if (model.ImageFile != null && model.ImageFile.Length > 0) //Se uma imagem for carregada --> lenght > 0 e model.ImageFile não é nulo
                 {
 
-                    path = await _imageHelper.UploadImageAsync(model.ImageFile, "owners"); //Mandar guardar na pasta "owners"
+                    //path = await _imageHelper.UploadImageAsync(model.ImageFile, "owners"); //Mandar guardar na pasta "owners"
+                    imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "owners");
                 }
 
-                var owner = _converterHelper.ToOwner(model, path, true); //Como é um create o isNew é true
+                var owner = _converterHelper.ToOwner(model, imageId, true); //Como é um create o isNew é true
 
                 // To do: Mofidicar para o user que estiver logado
                 owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
@@ -178,37 +180,15 @@ namespace MyLeasing.Web.Controllers
             {
                 try
                 {
-                    var path = model.ImageUrl;
+                    //var path = model.ImageUrl;
+                    Guid imageId = model.ImageId;
 
-                    if(model.ImageFile != null && model.ImageFile.Length > 0)
+                    if (model.ImageFile != null && model.ImageFile.Length > 0)
                     {
-                        //var guid = Guid.NewGuid().ToString(); //Guid gera uma chave aleatória
-                        //var file = $"{guid}.jpg";
-
-                        ////Caminho do ficheiro
-                        //path = Path.Combine(
-                        //    Directory.GetCurrentDirectory(),
-                        //    "wwwroot\\images\\owners",
-                        //    file);
-
-                        ////gravar a imagem
-                        //using (var stream = new FileStream(path, FileMode.Create)) //gravar no servidor, passando dois parametros
-                        //                                                           //Um é o path (o caminho do ficheiro) e o segundo é criar um ficheiro novo
-                        //{
-                        //    //Guardar 
-                        //    await model.ImageFile.CopyToAsync(stream);
-                        //}
-
-                        ////Atualizar o caminho para guardar na bd
-                        //path = $"~/images/owners/{file}";
-
-                        path = await _imageHelper.UploadImageAsync(model.ImageFile, "owners"); //Mandar guardar na pasta "owners"
+                        imageId = await _blobHelper.UploadBlobAsync(model.ImageFile, "owners");
                     }
 
-                    //Converter um OwnerViewModel em um Owner
-                    //var owner = this.ToOwner(model, path);
-
-                    var owner = _converterHelper.ToOwner(model, path, false);
+                    var owner = _converterHelper.ToOwner(model, imageId, false);
 
                     owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
                     //_context.Update(owner);
@@ -219,7 +199,7 @@ namespace MyLeasing.Web.Controllers
                 catch (DbUpdateConcurrencyException)
                 {
                     //if (!OwnerExists(owner.Id))
-                    if (! await _ownerRepository.ExistAsync(model.Id)) //verifica se o owner existe, mas com o método do repositorio
+                    if (!await _ownerRepository.ExistAsync(model.Id)) //verifica se o owner existe, mas com o método do repositorio
                     {
                         return NotFound();
                     }
