@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MyLeasing.Web.Data;
 using MyLeasing.Web.Helpers;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace MyLeasing.Web.Controllers
 {
+    //[Authorize] //Com o Authorize, só entram users logados
     public class OwnersController : Controller
     {
         private readonly IOwnersRepository _ownerRepository;
@@ -65,6 +67,7 @@ namespace MyLeasing.Web.Controllers
             return View(owner);
         }
 
+        [Authorize]
         // GET: Owners/Create
         public IActionResult Create()
         {
@@ -122,7 +125,7 @@ namespace MyLeasing.Web.Controllers
         //    };
         //}
 
-
+        [Authorize]
         // GET: Owners/Edit/5
         //public async Task<IActionResult> Edit(int? id)
         public async Task<IActionResult> Edit(int? id) //Recebe o id do owner a ser editado
@@ -213,6 +216,7 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
+        [Authorize]
         // GET: Owners/Delete/5
         //public async Task<IActionResult> Delete(int? id)
         public async Task<IActionResult> Delete(int? id)
