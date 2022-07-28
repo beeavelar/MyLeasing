@@ -75,7 +75,7 @@ namespace MyLeasing.Web.Controllers
 
                 var lessee = _converterHelper.ToLessee(model, imageId, true); //Como é um create o isNew é true
 
-                lessee.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                lessee.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
                 await _lesseeRepository.CreateAsync(lessee); //Adiciona o lessee
                 return RedirectToAction(nameof(Index));
@@ -123,7 +123,7 @@ namespace MyLeasing.Web.Controllers
 
                     var lessee = _converterHelper.ToLessee(model, imageId, false);
 
-                    lessee.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                    lessee.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                     await _lesseeRepository.UpdateAsync(lessee);
                 }
 

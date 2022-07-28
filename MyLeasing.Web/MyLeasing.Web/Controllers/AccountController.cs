@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using MyLeasing.Web.Data.Entities;
 using MyLeasing.Web.Helpers;
 using MyLeasing.Web.Models;
 using System.Linq;
@@ -53,5 +55,60 @@ namespace MyLeasing.Web.Controllers
             await _userHelper.LogoutAsync();
             return RedirectToAction("Index", "Home");
         }
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterNewUserViewModel model)
+        {
+            if(ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(model.Username); //Verificar se o user já existe ou não
+                if(user == null) //Se nao existe
+                {
+                    user = new User //Criar o novo objeto
+                    {
+                        Document = model.Document,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Username,
+                        UserName = model.Username
+                    };
+
+                    //Adicionar o user
+                    var result = await _userHelper.AddUserAsync(user, model.Password);
+
+                    //Se o user nao for criado
+                    if(result != IdentityResult.Success)
+                    {
+                        ModelState.AddModelError(string.Empty, "The user couldn´t be created."); //mostrar mensagem de erro
+                        return View(model); //Manter as caixas de texto com dados
+                    }
+
+                    //Se conseguir adicionar o novo user
+                    var loginViewModel = new LoginViewModel //Controi o loginviewmodel
+                    {
+                        Password = model.Password,
+                        RemenberMe = false,
+                        Username = model.Username
+                    };
+
+                    //tenta logar
+                    var result2 = await _userHelper.LoginAsync(loginViewModel);
+
+                    //Se conseguir logar, vai para a página index do home
+                    if(result2.Succeeded)
+                        return RedirectToAction("Index", "Home");
+
+                    //Se nao conseguir logar, mostra mensagem de erro
+                    ModelState.AddModelError(string.Empty, "The user couldn´t be logged."); //mostrar mensagem de erro
+                }
+            }
+            return View(model);
+        }
+
     }
 }

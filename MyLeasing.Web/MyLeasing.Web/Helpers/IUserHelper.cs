@@ -10,7 +10,7 @@ namespace MyLeasing.Web.Helpers
     {
         Task<User> GetUserByEmailAsync(string email);
 
-        Task<IdentityResult> AddUserSync(User user, string password);
+        Task<IdentityResult> AddUserAsync(User user, string password);
 
         Task<SignInResult> LoginAsync(LoginViewModel model); //Faz o login
 

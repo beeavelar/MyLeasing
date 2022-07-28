@@ -17,7 +17,7 @@ namespace MyLeasing.Web.Helpers
         }
 
         //Criar um novo user
-        public async Task<IdentityResult> AddUserSync(User user, string password)
+        public async Task<IdentityResult> AddUserAsync(User user, string password)
         {
             return await _userManager.CreateAsync(user, password);
         }

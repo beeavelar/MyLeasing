@@ -98,7 +98,8 @@ namespace MyLeasing.Web.Controllers
                 var owner = _converterHelper.ToOwner(model, imageId, true); //Como é um create o isNew é true
 
                 // To do: Mofidicar para o user que estiver logado
-                owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                //owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                owner.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
 
                 await _ownerRepository.CreateAsync(owner); //Adiciona o owner
                 return RedirectToAction(nameof(Index));
@@ -193,7 +194,7 @@ namespace MyLeasing.Web.Controllers
 
                     var owner = _converterHelper.ToOwner(model, imageId, false);
 
-                    owner.User = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt");
+                    owner.User = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name);
                     //_context.Update(owner);
                     //await _context.SaveChangesAsync();
                     await _ownerRepository.UpdateAsync(owner); //Faz o update dos dados do owner

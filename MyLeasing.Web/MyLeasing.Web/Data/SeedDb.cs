@@ -38,7 +38,7 @@ namespace MyLeasing.Web.Data
                     PhoneNumber = "932829382"
                 };
 
-                var result = await _userHelper.AddUserSync(user, "123456"); //Cria o user
+                var result = await _userHelper.AddUserAsync(user, "123456"); //Cria o user
                 if (result != IdentityResult.Success) //Se o user não for criado corretamente, mostra um erro
                     throw new InvalidOperationException("Could not create the user in seeder.");
             }
