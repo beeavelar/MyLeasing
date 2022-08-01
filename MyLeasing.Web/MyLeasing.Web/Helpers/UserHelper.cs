@@ -22,6 +22,14 @@ namespace MyLeasing.Web.Helpers
             return await _userManager.CreateAsync(user, password);
         }
 
+
+        //Método ChangePassword
+        public async Task<IdentityResult> ChangePasswordAsync(User user, string oldPassword, string newPassword)
+        {
+            return await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+        }
+
+        //Método GetUserByEmail
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _userManager.FindByEmailAsync(email);
@@ -38,6 +46,12 @@ namespace MyLeasing.Web.Helpers
         public async Task LogoutAsync()
         {
             await _signInManager.SignOutAsync();
+        }
+
+        //Método UpdateUser
+        public async Task<IdentityResult> UpdateUserAsync(User user)
+        {
+            return await _userManager.UpdateAsync(user); //Recebe o user e faz o update
         }
     }
 }

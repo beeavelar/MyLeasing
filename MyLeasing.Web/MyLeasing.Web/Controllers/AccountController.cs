@@ -45,7 +45,7 @@ namespace MyLeasing.Web.Controllers
                 }
             }
             //Se não conseguiu logar, recebe mensagem que o login falhou
-            this.ModelState.AddModelError(string.Empty, "Failed to login");
+            this.ModelState.AddModelError(string.Empty, "Failed to login!");
             return View(model); //Fica na mesma página e não limpa os campos do formulario
         }
 
@@ -110,5 +110,70 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> ChangeUser()
+        {
+            //Para mdoficar o user, a primeira coisa é buscar o email dele
+            var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //Buscar o user (no caso é pelo email)
+            var model = new ChangeUserViewModel(); //Instanciar o modelo do ChangeUserViewModel
+
+            if(user != null) //Verificar se o email do user existe
+            {
+                //Se o user for diferente de nulo
+                model.FirstName = user.FirstName; //Dizer que o firstname do modelo vai ser igual ao firstname do user
+                model.LastName = user.LastName;
+            }
+
+            return View(model); //Fazer return da View (model)
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeUser(ChangeUserViewModel model) //Recebe o model
+        {
+            if(ModelState.IsValid)
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //Buscar o user (no caso é pelo email)
+                
+                if (user != null) //Verificar se o email do user existe
+                {
+                    //Se o user for diferente de nulo
+                    user.FirstName = model.FirstName; //Dizer que o firstname do user vai ser igual ao firstname do modelo
+                    user.LastName = model.LastName;
+
+                    var response = await _userHelper.UpdateUserAsync(user); //Manda fazer o update
+
+                    if (response.Succeeded) //Se conseguir fazer o update, manda mensagem confirmando
+                        ViewBag.UserMessage = "User updated!";
+
+                    else //Se não conseguir, manda mensagem de erro
+                        ModelState.AddModelError(string.Empty, response.Errors.FirstOrDefault().Description);
+                }
+            }
+            return View(model); //Fazer return da View (model)
+        }
+
+        public IActionResult ChangePassword() //Esse método só retorna a View, ou seja, só mostra o formulário para mudar a Password
+        {
+            return View(); //Retorna apenas a View, sem nada preenchido pq se trata de dados sensíveis (password)
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model) //Passa o mdoelo
+        {
+            if(ModelState.IsValid) //Se o modelo for valido
+            {
+                var user = await _userHelper.GetUserByEmailAsync(this.User.Identity.Name); //Buscar o user (no caso é pelo email)
+
+                if (user != null) //Se o user existe
+                {
+                    var result = await _userHelper.ChangePasswordAsync(user, model.OldPassword, model.NewPassword); 
+
+                    if (result.Succeeded)
+                        return this.RedirectToAction("ChangeUser");
+                    else
+                        this.ModelState.AddModelError(string.Empty, result.Errors.FirstOrDefault().Description);    
+                }
+            }
+            return View(model);
+        }
     }
 }

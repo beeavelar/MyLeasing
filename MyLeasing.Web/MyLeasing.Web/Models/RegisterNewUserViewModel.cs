@@ -8,6 +8,7 @@ namespace MyLeasing.Web.Models
         [MaxLength(20, ErrorMessage = "The {0} field can not have more then {1} characters.")]
         [Required(ErrorMessage = "The field {0} is mandatory.")]
         public string Document { get; set; }
+
         [Required]
         [Display(Name = "First Name")]
         public string FirstName { get; set; }
