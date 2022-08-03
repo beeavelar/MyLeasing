@@ -25,6 +25,11 @@ namespace MyLeasing.Web.Data
         {
             await _context.Database.EnsureCreatedAsync(); //Cria a base de dados, se nao estiver criada, ele cria, se já tiver, segue o baile
 
+            //Verifica se existe os roles Admin, Owner e Lessee
+            await _userHelper.CheckRoleAsync("Admin");
+            await _userHelper.CheckRoleAsync("Owner");
+            await _userHelper.CheckRoleAsync("Lessee");
+
             var user = await _userHelper.GetUserByEmailAsync("debora.avelar.21695@formandos.cinel.pt"); //Verificar se já existe o o user debora.avelar.21695@formandos.cinel.pt
             if (user == null) //Se o user não existir, então criar o user
             {
@@ -41,9 +46,19 @@ namespace MyLeasing.Web.Data
                 var result = await _userHelper.AddUserAsync(user, "123456"); //Cria o user
                 if (result != IdentityResult.Success) //Se o user não for criado corretamente, mostra um erro
                     throw new InvalidOperationException("Could not create the user in seeder.");
+
+                //Adicionar o role ao user
+                await _userHelper.AddUserToRoleAsync(user, "Admin");
             }
-            
-            if(!_context.Owners.Any()) //Se nao existir Owners na Bd --> criar 
+
+            //Verifica se o user tem o role que quero verificar --> No caso o "AdmiN"
+            var isInRole = await _userHelper.IsUserInRoleAsync(user, "Admin");
+
+            //Se o user não tem a permissão Admin, adiciona ele no Admin
+            if(!isInRole)
+                await _userHelper.AddUserToRoleAsync(user, "Admin");
+
+            if (!_context.Owners.Any()) //Se nao existir Owners na Bd --> criar 
             {
                 AddOwner("Miguel", user); //Como só vai ter um utilizador criado, ele é quem cria todos os Owners por enquanto
                 AddOwner("Pedro", user);

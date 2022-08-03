@@ -19,5 +19,14 @@ namespace MyLeasing.Web.Helpers
         Task<IdentityResult> UpdateUserAsync (User user);
 
         Task<IdentityResult> ChangePasswordAsync (User user, string oldPassword, string newPassword);
+        
+        //Método que verifica se o user tem um determinado role
+        Task CheckRoleAsync(string roleName);
+
+        //Adicionao o role em um determinado user
+        Task AddUserToRoleAsync(User user, string roleName);
+
+        //Verifica se o user já tem esse role --> um user pode ter vários roles
+        Task<bool> IsUserInRoleAsync(User user, string roleName);
     }
 }

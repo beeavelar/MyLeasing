@@ -67,7 +67,7 @@ namespace MyLeasing.Web.Controllers
             return View(owner);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")] //[Authorize (Roles = "Admin, Owner")] --> Se quiser dar permissão de create mais roles
         // GET: Owners/Create
         public IActionResult Create()
         {
@@ -126,7 +126,7 @@ namespace MyLeasing.Web.Controllers
         //    };
         //}
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         // GET: Owners/Edit/5
         //public async Task<IActionResult> Edit(int? id)
         public async Task<IActionResult> Edit(int? id) //Recebe o id do owner a ser editado
@@ -217,7 +217,7 @@ namespace MyLeasing.Web.Controllers
             return View(model);
         }
 
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         // GET: Owners/Delete/5
         //public async Task<IActionResult> Delete(int? id)
         public async Task<IActionResult> Delete(int? id)
