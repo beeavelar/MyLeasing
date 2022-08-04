@@ -1,7 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using MyLeasing.Web.Models;
-using System.Diagnostics;
 
 namespace MyLeasing.Web.Controllers
 {
@@ -33,6 +33,12 @@ namespace MyLeasing.Web.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [Route("error/404")]
+        public IActionResult Error404()
+        {
+            return View();
         }
     }
 }

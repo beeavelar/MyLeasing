@@ -52,7 +52,7 @@ namespace MyLeasing.Web.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound"); //Passa a view que quero que apareça
             }
 
             //var owner = await _context.Owners
@@ -61,7 +61,7 @@ namespace MyLeasing.Web.Controllers
                                                                        //aceita valor nulo) e não dar erro
             if (owner == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound");
             }
 
             return View(owner);
@@ -134,14 +134,14 @@ namespace MyLeasing.Web.Controllers
             //Verifica se o owner existe
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound");
             }
 
             //var owner = await _context.Owners.FindAsync(id);
             var owner = await _ownerRepository.GetByIdAsync(id.Value);
             if (owner == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound");
             }
 
             //No Edit é ao contrário, converte o Owner em OwnerViewModel
@@ -224,7 +224,7 @@ namespace MyLeasing.Web.Controllers
         {
             if (id == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound");
             }
 
             //var owner = await _context.Owners
@@ -232,7 +232,7 @@ namespace MyLeasing.Web.Controllers
             var owner = await _ownerRepository.GetByIdAsync(id.Value);
             if (owner == null)
             {
-                return NotFound();
+                return new NotFoundViewResult("OwnerNotFound");
             }
 
             return View(owner);
@@ -256,5 +256,10 @@ namespace MyLeasing.Web.Controllers
         //{
         //    return _context.Owners.Any(e => e.Id == id);
         //}
+
+        public IActionResult OwnerNotFound()
+        {
+            return View();
+        }
     }
 }
